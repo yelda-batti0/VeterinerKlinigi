@@ -1,0 +1,22 @@
+﻿@model VeterinerKlinigi.Entities.Hizmet
+@{
+    ViewData["Title"] = "Hizmet Sil";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+}
+
+<div class="card shadow-sm border-danger" style="max-width: 600px;">
+    <div class="card-header bg-danger text-white fw-semibold">Bu hizmeti silmek istediğinize emin misiniz?</div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Hizmet</dt><dd class="col-sm-8">@Model.Ad</dd>
+            <dt class="col-sm-4">Klinik</dt><dd class="col-sm-8">@Model.Klinik?.Ad</dd>
+            <dt class="col-sm-4">Süre</dt><dd class="col-sm-8">@Model.SureDakika dk</dd>
+            <dt class="col-sm-4">Ücret</dt><dd class="col-sm-8">@Model.Ucret.ToString("N2") ₺</dd>
+        </dl>
+        <form asp-action="Delete" method="post" class="mt-4 d-flex gap-2">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">Evet, Sil</button>
+            <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
+        </form>
+    </div>
+</div>

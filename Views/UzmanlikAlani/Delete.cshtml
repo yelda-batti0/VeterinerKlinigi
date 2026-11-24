@@ -1,0 +1,20 @@
+﻿@model VeterinerKlinigi.Entities.UzmanlikAlani
+@{
+    ViewData["Title"] = "Uzmanlık Alanı Sil";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+}
+
+<div class="card shadow-sm border-danger" style="max-width: 600px;">
+    <div class="card-header bg-danger text-white fw-semibold">Bu uzmanlık alanını silmek istediğinize emin misiniz?</div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-4">Uzmanlık Alanı</dt><dd class="col-sm-8">@Model.Ad</dd>
+            <dt class="col-sm-4">Veteriner Sayısı</dt><dd class="col-sm-8">@Model.Veterinerler.Count</dd>
+        </dl>
+        <form asp-action="Delete" method="post" class="mt-4 d-flex gap-2">
+            <input type="hidden" asp-for="Id" />
+            <button type="submit" class="btn btn-danger">Evet, Sil</button>
+            <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,23 @@
+﻿@model VeterinerKlinigi.Entities.Hizmet
+@{
+    ViewData["Title"] = "Hizmet Düzenle";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+}
+
+<div class="card shadow-sm" style="max-width: 800px;">
+    <div class="card-header bg-white fw-semibold">Hizmet Düzenle</div>
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <partial name="_Form" model="Model" />
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Güncelle</button>
+                <a asp-action="Index" class="btn btn-secondary">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

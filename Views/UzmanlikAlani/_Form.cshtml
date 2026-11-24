@@ -1,0 +1,12 @@
+﻿@model VeterinerKlinigi.Entities.UzmanlikAlani
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+}
+
+<div class="mb-3">
+    <label asp-for="Ad" class="form-label"></label>
+    <input asp-for="Ad" class="form-control" placeholder="Örn: Dermatoloji" />
+    <span asp-validation-for="Ad" class="text-danger small"></span>
+</div>

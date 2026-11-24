@@ -1,0 +1,36 @@
+﻿@model VeterinerKlinigi.Entities.Hizmet
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="KlinikId" class="form-label"></label>
+        <select asp-for="KlinikId" asp-items="ViewBag.Klinikler" class="form-select">
+            <option value="">-- Klinik seçin --</option>
+        </select>
+        <span asp-validation-for="KlinikId" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Ad" class="form-label"></label>
+        <input asp-for="Ad" class="form-control" placeholder="Örn: Genel Muayene" />
+        <span asp-validation-for="Ad" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="SureDakika" class="form-label"></label>
+        <input asp-for="SureDakika" class="form-control" />
+        <span asp-validation-for="SureDakika" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Ucret" class="form-label"></label>
+        <input asp-for="Ucret" class="form-control" placeholder="Örn: 500,00" />
+        <span asp-validation-for="Ucret" class="text-danger small"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Aciklama" class="form-label"></label>
+        <textarea asp-for="Aciklama" class="form-control" rows="3"></textarea>
+        <span asp-validation-for="Aciklama" class="text-danger small"></span>
+    </div>
+</div>

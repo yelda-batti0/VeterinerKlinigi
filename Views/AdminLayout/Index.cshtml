@@ -1,0 +1,77 @@
+﻿@{
+    Layout = null;
+    var aktif = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Veteriner Kliniği Yönetim Paneli</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+        .admin-sidebar { min-height: 100vh; width: 240px; }
+        .admin-sidebar .nav-link { color: #cfd8dc; }
+        .admin-sidebar .nav-link:hover,
+        .admin-sidebar .nav-link.active { color: #fff; background: rgba(255,255,255,.12); border-radius: .375rem; }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="d-flex">
+        <!-- SIDEBAR -->
+        <nav class="admin-sidebar bg-dark p-3 d-flex flex-column">
+            <a asp-controller="Dashboard" asp-action="Index" class="text-white text-decoration-none fs-5 fw-bold mb-4">
+                <i class="bi bi-heart-pulse"></i> Vet Admin
+            </a>
+            <ul class="nav flex-column gap-1">
+                <li><a class="nav-link @(aktif == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                <li><a class="nav-link @(aktif == "Klinik" ? "active" : "")" asp-controller="Klinik" asp-action="Index"><i class="bi bi-hospital me-2"></i>Klinikler</a></li>
+                <li><a class="nav-link @(aktif == "Hizmet" ? "active" : "")" asp-controller="Hizmet" asp-action="Index"><i class="bi bi-clipboard2-pulse me-2"></i>Hizmetler</a></li>
+                <li><a class="nav-link @(aktif == "UzmanlikAlani" ? "active" : "")" asp-controller="UzmanlikAlani" asp-action="Index"><i class="bi bi-award me-2"></i>Uzmanlık Alanları</a></li>
+                <li><a class="nav-link @(aktif == "Veteriner" ? "active" : "")" asp-controller="Veteriner" asp-action="Index"><i class="bi bi-person-badge me-2"></i>Veterinerler</a></li>
+                <li><a class="nav-link @(aktif == "Randevu" ? "active" : "")" asp-controller="Randevu" asp-action="Index"><i class="bi bi-calendar-check me-2"></i>Randevular</a></li>
+            </ul>
+            <div class="mt-auto">
+                <a class="nav-link" asp-controller="Home" asp-action="Index"><i class="bi bi-arrow-left me-2"></i>Siteye Dön</a>
+            </div>
+        </nav>
+
+        <div class="flex-grow-1">
+            <!-- NAVBAR -->
+            <header class="bg-white border-bottom px-4 py-2 d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">@ViewData["Title"]</span>
+                <partial name="_LoginPartial" />
+            </header>
+
+            <!-- İÇERİK -->
+            <main class="p-4">
+                @if (TempData["Basari"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        @TempData["Basari"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["Hata"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        @TempData["Hata"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,34 @@
+﻿@model VeterinerKlinigi.Entities.Klinik
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="Ad" class="form-label"></label>
+        <input asp-for="Ad" class="form-control" />
+        <span asp-validation-for="Ad" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="Telefon" class="form-label"></label>
+        <input asp-for="Telefon" class="form-control" placeholder="0264 000 00 00" />
+        <span asp-validation-for="Telefon" class="text-danger small"></span>
+    </div>
+    <div class="col-12">
+        <label asp-for="Adres" class="form-label"></label>
+        <input asp-for="Adres" class="form-control" />
+        <span asp-validation-for="Adres" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="AcilisSaati" class="form-label"></label>
+        <input asp-for="AcilisSaati" class="form-control" />
+        <span asp-validation-for="AcilisSaati" class="text-danger small"></span>
+    </div>
+    <div class="col-md-6">
+        <label asp-for="KapanisSaati" class="form-label"></label>
+        <input asp-for="KapanisSaati" class="form-control" />
+        <span asp-validation-for="KapanisSaati" class="text-danger small"></span>
+    </div>
+</div>

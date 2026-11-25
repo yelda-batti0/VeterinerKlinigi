@@ -1,22 +1,23 @@
 ﻿@model VeterinerKlinigi.Entities.Hizmet
 @{
     ViewData["Title"] = "Yeni Hizmet";
+    ViewData["ButonMetni"] = "Hizmeti Kaydet";
     Layout = "~/Views/AdminLayout/Index.cshtml";
 }
 
-<div class="card shadow-sm" style="max-width: 800px;">
-    <div class="card-header bg-white fw-semibold">Yeni Hizmet Ekle</div>
-    <div class="card-body">
-        <form asp-action="Create" method="post">
-            <partial name="_Form" model="Model" />
-            <div class="mt-4 d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Kaydet</button>
-                <a asp-action="Index" class="btn btn-secondary">İptal</a>
-            </div>
-        </form>
+<div class="page-head">
+    <div>
+        <a asp-action="Index" class="back-link"><i class="bi bi-arrow-left"></i> Hizmetler</a>
+        <h2>Yeni Hizmet</h2>
+        <p>Hizmetin bağlı olduğu kliniği, süresini ve ücretini girin.</p>
     </div>
 </div>
 
+<form asp-action="Create" method="post">
+    <partial name="_Form" model="Model" />
+</form>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/hizmet-form.js" asp-append-version="true"></script>
 }

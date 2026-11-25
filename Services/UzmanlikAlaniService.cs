@@ -43,14 +43,19 @@ namespace VeterinerKlinigi.Services
         {
             return await _context.UzmanlikAlanlari
                 .Include(u => u.Veterinerler)
+                    .ThenInclude(v => v.Klinik)
+                .AsSplitQuery()
                 .OrderBy(u => u.Ad)
                 .ToListAsync();
         }
-
         public async Task<UzmanlikAlani?> GetByIdAsync(int id)
         {
             return await _context.UzmanlikAlanlari
                 .Include(u => u.Veterinerler)
+                    .ThenInclude(v => v.Klinik)
+                .Include(u => u.Veterinerler)
+                    .ThenInclude(v => v.UzmanlikAlanlari)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 

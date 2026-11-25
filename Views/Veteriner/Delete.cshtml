@@ -1,0 +1,32 @@
+﻿@model VeterinerKlinigi.Entities.VeterinerHekim
+@{
+    ViewData["Title"] = "Veteriner Sil";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+    bool silinemez = Model.Randevular.Any();
+}
+
+<div class="card-modern mx-auto" style="max-width: 520px;">
+    <div class="text-center p-4 p-md-5">
+        <div class="modal-modern"><div class="modal-icon"><i class="bi bi-trash3"></i></div></div>
+        <h4 class="fw-bold mb-2">Veterineri silmek istediğinize emin misiniz?</h4>
+        <p class="text-muted">
+            <strong class="text-dark">@Model.AdSoyad</strong> (@Model.Klinik?.Ad) kalıcı olarak silinecek.
+            Giriş hesabı ve müsaitlik saatleri de silinir.
+        </p>
+
+        @if (silinemez)
+        {
+            <div class="alert alert-warning small text-start">
+                Bu veterinere ait @Model.Randevular.Count randevu bulunduğu için silinemez.
+            </div>
+        }
+
+        <form asp-action="Delete" method="post" class="d-flex gap-2 justify-content-center mt-4">
+            <input type="hidden" asp-for="Id" />
+            <a asp-action="Index" class="btn btn-soft px-4">Vazgeç</a>
+            <button type="submit" class="btn btn-danger rounded-3 fw-semibold px-4" disabled="@silinemez">
+                <i class="bi bi-trash3 me-1"></i> Evet, Sil
+            </button>
+        </form>
+    </div>
+</div>

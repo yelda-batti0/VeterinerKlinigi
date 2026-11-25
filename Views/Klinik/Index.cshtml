@@ -1,49 +1,162 @@
-﻿@model List<VeterinerKlinigi.Entities.Klinik>
+﻿@model VeterinerKlinigi.Models.KlinikIndexViewModel
+@using VeterinerKlinigi.Models
 @{
     ViewData["Title"] = "Klinikler";
     Layout = "~/Views/AdminLayout/Index.cshtml";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Klinikler</h4>
-    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni Klinik</a>
+<!-- BAŞLIK -->
+<div class="page-head">
+    <div>
+        <div class="eyebrow"><i class="bi bi-hospital"></i> Klinik Yönetimi</div>
+        <h2>Klinikler</h2>
+        <p>Sisteme kayıtlı klinikleri, çalışma saatlerini ve bağlı ekiplerini buradan yönetin.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-brand"><i class="bi bi-plus-lg me-1"></i> Yeni Klinik Ekle</a>
 </div>
 
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Klinik Adı</th>
-                    <th>Adres</th>
-                    <th>Telefon</th>
-                    <th>Çalışma Saatleri</th>
-                    <th>Hizmet</th>
-                    <th>Veteriner</th>
-                    <th class="text-end">İşlemler</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="7" class="text-center text-muted py-4">Henüz klinik eklenmemiş.</td></tr>
-                }
-                @foreach (var k in Model)
-                {
-                    <tr>
-                        <td class="fw-semibold">@k.Ad</td>
-                        <td>@k.Adres</td>
-                        <td>@k.Telefon</td>
-                        <td>@k.AcilisSaati.ToString(@"hh\:mm") - @k.KapanisSaati.ToString(@"hh\:mm")</td>
-                        <td><span class="badge bg-info text-dark">@k.Hizmetler.Count</span></td>
-                        <td><span class="badge bg-secondary">@k.Veterinerler.Count</span></td>
-                        <td class="text-end">
-                            <a asp-action="Edit" asp-route-id="@k.Id" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
-                            <a asp-action="Delete" asp-route-id="@k.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<!-- İSTATİSTİKLER -->
+<div class="row g-3 mb-2">
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Toplam Klinik", Deger = Model.ToplamKlinik.ToString(), Ikon = "bi-hospital", Ton = "teal" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Şu An Açık", Deger = Model.AcikKlinik.ToString(), Ikon = "bi-door-open", Ton = "green" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Şu An Kapalı", Deger = Model.KapaliKlinik.ToString(), Ikon = "bi-door-closed", Ton = "slate" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Toplam Veteriner", Deger = Model.ToplamVeteriner.ToString(), Ikon = "bi-person-badge", Ton = "blue" })' />
     </div>
 </div>
+<p class="small text-muted mb-4"><i class="bi bi-info-circle me-1"></i>Açık/kapalı durumu, kliniklerin çalışma saatlerine göre anlık hesaplanır.</p>
+
+@if (!Model.Klinikler.Any())
+{
+    <!-- HİÇ KLİNİK YOK -->
+    <div class="card-modern">
+        <partial name="_AdminBosDurum" model='@(new BosDurumViewModel
+                 {
+                     Ikon = "bi-hospital",
+                     Baslik = "Henüz klinik eklenmemiş",
+                     Aciklama = "İlk kliniğinizi ekleyerek hizmet ve veteriner tanımlamaya başlayabilirsiniz.",
+                     ButonMetni = "İlk Kliniği Ekle",
+                     ButonUrl = Url.Action("Create")
+                 })' />
+    </div>
+}
+else
+{
+    <!-- ARAÇ ÇUBUĞU -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" placeholder="Klinik adı veya adres ara..." data-liste-ara />
+        </div>
+        <select class="form-select" data-liste-filtre>
+            <option value="">Tüm durumlar</option>
+            <option value="acik">Şu an açık</option>
+            <option value="kapali">Şu an kapalı</option>
+        </select>
+        <select class="form-select" data-liste-sirala>
+            <option value="ad-asc">Ada göre (A-Z)</option>
+            <option value="ad-desc">Ada göre (Z-A)</option>
+            <option value="veteriner-desc">En çok veteriner</option>
+            <option value="hizmet-desc">En çok hizmet</option>
+            <option value="acilis-asc">En erken açılan</option>
+        </select>
+        <span class="toolbar-count"><strong data-liste-sayac>@Model.Klinikler.Count</strong> klinik</span>
+        <div class="view-toggle">
+            <button type="button" data-gorunum="grid" title="Kart görünümü"><i class="bi bi-grid-3x3-gap"></i></button>
+            <button type="button" data-gorunum="list" title="Liste görünümü"><i class="bi bi-list-ul"></i></button>
+        </div>
+    </div>
+
+    <!-- KLİNİK KARTLARI -->
+    <div class="row g-4" data-liste="klinik">
+        @foreach (var k in Model.Klinikler)
+        {
+            var acik = KlinikHelper.SuAnAcikMi(k);
+            var silUyari = (k.Hizmetler.Any() || k.Veterinerler.Any())
+                ? $"Bu kliniğe bağlı {k.Hizmetler.Count} hizmet ve {k.Veterinerler.Count} veteriner bulunduğu için silinemez. Önce bunları kaldırmalısınız."
+                : "";
+
+            <div class="col-xl-4 col-md-6 liste-item"
+                 data-ara="@($"{k.Ad} {k.Adres}")"
+                 data-durum="@(acik ? "acik" : "kapali")"
+                 data-ad="@k.Ad"
+                 data-veteriner="@k.Veterinerler.Count"
+                 data-hizmet="@k.Hizmetler.Count"
+                 data-acilis="@((int)k.AcilisSaati.TotalMinutes)">
+
+                <div class="entity-card">
+                    <div class="ec-head">
+                        <div class="ec-icon"><i class="bi bi-hospital"></i></div>
+                        <div class="flex-grow-1 min-w-0">
+                            <h3 class="ec-title text-truncate" title="@k.Ad">@k.Ad</h3>
+                            <div class="ec-sub"><i class="bi bi-clock me-1"></i>@k.AcilisSaati.ToString(@"hh\:mm") – @k.KapanisSaati.ToString(@"hh\:mm")</div>
+                        </div>
+                        @if (acik)
+                        {
+                            <span class="chip"><span class="dot"></span>Açık</span>
+                        }
+                        else
+                        {
+                            <span class="chip gray"><span class="dot"></span>Kapalı</span>
+                        }
+                    </div>
+
+                    <div class="ec-body">
+                        <div class="info-row">
+                            <i class="bi bi-geo-alt"></i>
+                            <a href="https://www.google.com/maps/search/?api=1&query=@Uri.EscapeDataString(k.Adres)" target="_blank" class="line-clamp-2" title="Haritada göster">@k.Adres</a>
+                        </div>
+                        <div class="info-row">
+                            <i class="bi bi-telephone"></i>
+                            @if (!string.IsNullOrWhiteSpace(k.Telefon))
+                            {
+                                <a href="tel:@k.Telefon.Replace(" ", "")">@k.Telefon</a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Telefon eklenmemiş</span>
+                            }
+                        </div>
+                        <div class="metric-strip">
+                            <div class="metric"><strong>@k.Veterinerler.Count</strong><span>Veteriner</span></div>
+                            <div class="metric"><strong>@k.Hizmetler.Count</strong><span>Hizmet</span></div>
+                        </div>
+                    </div>
+
+                    <div class="ec-foot">
+                        <a asp-action="Details" asp-route-id="@k.Id" class="btn-detail"><i class="bi bi-eye"></i> Detayları Gör</a>
+                        <a asp-action="Edit" asp-route-id="@k.Id" class="btn-icon edit" title="Düzenle"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn-icon delete" title="Sil"
+                                data-sil-url="@Url.Action("Delete", new { id = k.Id })"
+                                data-sil-ad="@k.Ad"
+                                data-sil-uyari="@silUyari">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ARAMADA SONUÇ YOK -->
+    <div class="card-modern d-none" data-liste-sonucyok>
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-search"></i></div>
+            <h5 class="fw-bold">Eşleşen klinik bulunamadı</h5>
+            <p>Arama ifadesini ya da durum filtresini değiştirerek tekrar deneyin.</p>
+            <button type="button" class="btn btn-soft" data-liste-temizle><i class="bi bi-x-circle me-1"></i> Filtreleri temizle</button>
+        </div>
+    </div>
+}
+
+<partial name="_AdminSilModal" />
+
+@section Scripts {
+    <script src="~/js/admin-liste.js" asp-append-version="true"></script>
+}

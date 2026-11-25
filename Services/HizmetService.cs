@@ -19,6 +19,8 @@ namespace VeterinerKlinigi.Services
             var sorgu = _context.Hizmetler
                 .Include(h => h.Klinik)
                 .Include(h => h.Veterinerler)
+                .Include(h => h.Randevular)
+                .AsSplitQuery()
                 .AsQueryable();
 
             if (klinikId.HasValue)
@@ -35,6 +37,9 @@ namespace VeterinerKlinigi.Services
             return await _context.Hizmetler
                 .Include(h => h.Klinik)
                 .Include(h => h.Veterinerler)
+                    .ThenInclude(v => v.UzmanlikAlanlari)
+                .Include(h => h.Randevular)
+                .AsSplitQuery()
                 .FirstOrDefaultAsync(h => h.Id == id);
         }
 

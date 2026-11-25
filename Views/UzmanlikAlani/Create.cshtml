@@ -1,22 +1,24 @@
 ﻿@model VeterinerKlinigi.Entities.UzmanlikAlani
 @{
     ViewData["Title"] = "Yeni Uzmanlık Alanı";
+    ViewData["ButonMetni"] = "Uzmanlığı Kaydet";
     Layout = "~/Views/AdminLayout/Index.cshtml";
 }
 
-<div class="card shadow-sm" style="max-width: 600px;">
-    <div class="card-header bg-white fw-semibold">Yeni Uzmanlık Alanı</div>
-    <div class="card-body">
-        <form asp-action="Create" method="post">
-            <partial name="_Form" model="Model" />
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">Kaydet</button>
-                <a asp-action="Index" class="btn btn-secondary">İptal</a>
-            </div>
-        </form>
+<div class="page-head">
+    <div>
+        <a asp-action="Index" class="back-link"><i class="bi bi-arrow-left"></i> Uzmanlık Alanları</a>
+        <h2>Yeni Uzmanlık Alanı</h2>
+        <p>Veterinerlere atanabilecek yeni bir uzmanlık alanı tanımlayın.</p>
     </div>
 </div>
 
+<form asp-action="Create" method="post">
+    <partial name="_Form" model="Model" />
+</form>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>window.mevcutUzmanliklar = @Json.Serialize(ViewBag.MevcutAdlar);</script>
+    <script src="~/js/uzmanlik-form.js" asp-append-version="true"></script>
 }

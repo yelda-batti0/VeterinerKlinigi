@@ -1,12 +1,76 @@
 ﻿@model VeterinerKlinigi.Entities.UzmanlikAlani
+@using VeterinerKlinigi.Models
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-}
+<div class="row g-4">
+    <!-- FORM -->
+    <div class="col-lg-7">
+        <div class="card-modern">
+            <div class="card-modern-body p-4">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                }
 
-<div class="mb-3">
-    <label asp-for="Ad" class="form-label"></label>
-    <input asp-for="Ad" class="form-control" placeholder="Örn: Dermatoloji" />
-    <span asp-validation-for="Ad" class="text-danger small"></span>
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-teal"><i class="bi bi-award"></i></span> Uzmanlık Bilgisi</div>
+                    <label asp-for="Ad" class="form-label"></label>
+                    <input asp-for="Ad" class="form-control" placeholder="Örn: Dermatoloji" autocomplete="off" />
+                    <span asp-validation-for="Ad" class="text-danger small"></span>
+                    <div id="adUyari" class="small text-danger mt-1 d-none">
+                        <i class="bi bi-exclamation-circle me-1"></i>Bu isimde bir uzmanlık alanı zaten var.
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-blue"><i class="bi bi-lightning"></i></span> Hızlı Seçim</div>
+                    <p class="small text-muted mb-2">Sık kullanılan uzmanlık alanlarından birine tıklayarak doldurabilirsiniz.</p>
+                    <div class="quick-chips">
+                        @foreach (var oneri in UzmanlikHelper.Oneriler)
+                        {
+                            <button type="button" class="quick-chip" data-ad="@oneri">
+                                <i class="bi @UzmanlikHelper.Ikon(oneri) me-1"></i>@oneri
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-soft">İptal</a>
+                <button type="submit" class="btn btn-brand" id="kaydetButon"><i class="bi bi-check2 me-1"></i> @ViewData["ButonMetni"]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CANLI ÖNİZLEME -->
+    <div class="col-lg-5">
+        <div class="preview-sticky">
+            <div class="preview-label">Canlı Önizleme</div>
+            <div class="entity-card">
+                <div class="ec-head">
+                    <div class="ec-icon"><i id="onizIkon" class="bi bi-award"></i></div>
+                    <div class="flex-grow-1 min-w-0">
+                        <h3 class="ec-title text-truncate" id="onizAd">Uzmanlık alanı</h3>
+                        <div class="ec-sub">@Model.Veterinerler.Count veteriner</div>
+                    </div>
+                </div>
+                <div class="ec-body">
+                    @if (Model.Veterinerler.Any())
+                    {
+                        <div class="avatar-stack">
+                            @foreach (var v in Model.Veterinerler.Take(5))
+                            {
+                                <span class="avatar" title="@v.AdSoyad">@(v.Ad.Substring(0, 1))@(v.Soyad.Substring(0, 1))</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <span class="chip warn"><i class="bi bi-person-dash"></i>Boşta, veteriner yok</span>
+                    }
+                </div>
+            </div>
+            <p class="small text-muted mt-3"><i class="bi bi-lightbulb me-1"></i> İkon, uzmanlık adına göre otomatik seçilir.</p>
+        </div>
+    </div>
 </div>

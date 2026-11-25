@@ -1,34 +1,84 @@
 ﻿@model VeterinerKlinigi.Entities.Klinik
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-}
+<div class="row g-4">
+    <!-- FORM -->
+    <div class="col-lg-8">
+        <div class="card-modern">
+            <div class="card-modern-body p-4">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                }
 
-<div class="row g-3">
-    <div class="col-md-6">
-        <label asp-for="Ad" class="form-label"></label>
-        <input asp-for="Ad" class="form-control" />
-        <span asp-validation-for="Ad" class="text-danger small"></span>
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-teal"><i class="bi bi-info-circle"></i></span> Genel Bilgiler</div>
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label asp-for="Ad" class="form-label"></label>
+                            <input asp-for="Ad" class="form-control" placeholder="Örn: Patiler Veteriner Kliniği" />
+                            <span asp-validation-for="Ad" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-5">
+                            <label asp-for="Telefon" class="form-label"></label>
+                            <input asp-for="Telefon" class="form-control" placeholder="0264 000 00 00" />
+                            <span asp-validation-for="Telefon" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-blue"><i class="bi bi-geo-alt"></i></span> Konum</div>
+                    <label asp-for="Adres" class="form-label"></label>
+                    <textarea asp-for="Adres" class="form-control" rows="2" placeholder="Mahalle, cadde, ilçe / il"></textarea>
+                    <span asp-validation-for="Adres" class="text-danger small"></span>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-amber"><i class="bi bi-clock"></i></span> Çalışma Saatleri</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="AcilisSaati" class="form-label"></label>
+                            <input asp-for="AcilisSaati" class="form-control" />
+                            <span asp-validation-for="AcilisSaati" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="KapanisSaati" class="form-label"></label>
+                            <input asp-for="KapanisSaati" class="form-control" />
+                            <span asp-validation-for="KapanisSaati" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-3">
+                        <i class="bi bi-hourglass-split me-1"></i> Günlük çalışma süresi: <strong id="calismaSuresi">-</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-soft">İptal</a>
+                <button type="submit" class="btn btn-brand"><i class="bi bi-check2 me-1"></i> @ViewData["ButonMetni"]</button>
+            </div>
+        </div>
     </div>
-    <div class="col-md-6">
-        <label asp-for="Telefon" class="form-label"></label>
-        <input asp-for="Telefon" class="form-control" placeholder="0264 000 00 00" />
-        <span asp-validation-for="Telefon" class="text-danger small"></span>
-    </div>
-    <div class="col-12">
-        <label asp-for="Adres" class="form-label"></label>
-        <input asp-for="Adres" class="form-control" />
-        <span asp-validation-for="Adres" class="text-danger small"></span>
-    </div>
-    <div class="col-md-6">
-        <label asp-for="AcilisSaati" class="form-label"></label>
-        <input asp-for="AcilisSaati" class="form-control" />
-        <span asp-validation-for="AcilisSaati" class="text-danger small"></span>
-    </div>
-    <div class="col-md-6">
-        <label asp-for="KapanisSaati" class="form-label"></label>
-        <input asp-for="KapanisSaati" class="form-control" />
-        <span asp-validation-for="KapanisSaati" class="text-danger small"></span>
+
+    <!-- CANLI ÖNİZLEME -->
+    <div class="col-lg-4">
+        <div class="preview-sticky">
+            <div class="preview-label">Canlı Önizleme</div>
+            <div class="entity-card">
+                <div class="ec-head">
+                    <div class="ec-icon"><i class="bi bi-hospital"></i></div>
+                    <div class="flex-grow-1 min-w-0">
+                        <h3 class="ec-title text-truncate" id="onizAd">Klinik adı</h3>
+                        <div class="ec-sub"><i class="bi bi-clock me-1"></i><span id="onizSaat">--:-- – --:--</span></div>
+                    </div>
+                    <span class="chip gray" id="onizDurum"><span class="dot"></span>Kapalı</span>
+                </div>
+                <div class="ec-body">
+                    <div class="info-row"><i class="bi bi-geo-alt"></i><span class="line-clamp-2" id="onizAdres">Adres bilgisi</span></div>
+                    <div class="info-row"><i class="bi bi-telephone"></i><span id="onizTelefon">Telefon eklenmemiş</span></div>
+                </div>
+            </div>
+            <p class="small text-muted mt-3"><i class="bi bi-lightbulb me-1"></i> Klinik, listede bu kart şeklinde görünecek.</p>
+        </div>
     </div>
 </div>

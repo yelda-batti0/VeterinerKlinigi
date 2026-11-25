@@ -1,0 +1,150 @@
+﻿@model VeterinerKlinigi.Models.VeterinerFormViewModel
+@using VeterinerKlinigi.Models
+@{
+    var uzmanliklar = (List<VeterinerKlinigi.Entities.UzmanlikAlani>)ViewBag.Uzmanliklar;
+    var hizmetler = (List<VeterinerKlinigi.Entities.Hizmet>)ViewBag.Hizmetler;
+    bool yeniKayit = Model.Id == 0;
+}
+
+<div class="row g-4">
+    <!-- FORM -->
+    <div class="col-lg-8">
+        <div class="card-modern">
+            <div class="card-modern-body p-4">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                }
+
+                <!-- Kişisel bilgiler -->
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-teal"><i class="bi bi-person"></i></span> Kişisel Bilgiler</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Ad" class="form-label"></label>
+                            <input asp-for="Ad" class="form-control" placeholder="Örn: Ayşe" />
+                            <span asp-validation-for="Ad" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Soyad" class="form-label"></label>
+                            <input asp-for="Soyad" class="form-control" placeholder="Örn: Yılmaz" />
+                            <span asp-validation-for="Soyad" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="KlinikId" class="form-label"></label>
+                            <select asp-for="KlinikId" asp-items="ViewBag.Klinikler" class="form-select">
+                                <option value="">-- Klinik seçin --</option>
+                            </select>
+                            <span asp-validation-for="KlinikId" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Giriş hesabı -->
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-blue"><i class="bi bi-shield-lock"></i></span> Giriş Hesabı</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Email" class="form-label"></label>
+                            <input asp-for="Email" class="form-control" readonly="@(!yeniKayit)" placeholder="ornek@vetklinik.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        @if (yeniKayit)
+                        {
+                            <div class="col-md-6">
+                                <label asp-for="Sifre" class="form-label"></label>
+                                <div class="input-group">
+                                    <input asp-for="Sifre" class="form-control" placeholder="En az 3 karakter" />
+                                    <button type="button" class="btn btn-soft" id="sifreGoster" title="Şifreyi göster/gizle"><i class="bi bi-eye"></i></button>
+                                </div>
+                                <span asp-validation-for="Sifre" class="text-danger small"></span>
+                            </div>
+                        }
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        @(yeniKayit
+                            ? "Veteriner bu e-posta ve şifreyle sisteme giriş yapıp kendi randevularını yönetecek."
+                            : "E-posta adresi giriş bilgisi olduğu için değiştirilemez.")
+                    </div>
+                </div>
+
+                <!-- Uzmanlık alanları -->
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-amber"><i class="bi bi-award"></i></span> Uzmanlık Alanları</div>
+                    @if (!uzmanliklar.Any())
+                    {
+                        <div class="small text-muted">Henüz uzmanlık alanı yok. <a asp-controller="UzmanlikAlani" asp-action="Create">Uzmanlık ekleyin</a>.</div>
+                    }
+                    <div class="select-grid">
+                        @foreach (var u in uzmanliklar)
+                        {
+                            <label class="select-card">
+                                <input type="checkbox" name="SeciliUzmanlikIds" value="@u.Id" data-ad="@u.Ad"
+                                @(Model.SeciliUzmanlikIds.Contains(u.Id) ? "checked" : "") />
+                                <span class="sc-body">
+                                    <i class="sc-icon bi @UzmanlikHelper.Ikon(u.Ad)"></i>
+                                    <span class="sc-title">@u.Ad</span>
+                                    <i class="sc-check bi bi-check-circle-fill"></i>
+                                </span>
+                            </label>
+                        }
+                    </div>
+                </div>
+
+                <!-- Hizmetler -->
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-green"><i class="bi bi-clipboard2-pulse"></i></span> Verebildiği Hizmetler</div>
+                    <div id="hizmetBilgi" class="small text-muted mb-2">Hizmetleri görmek için önce klinik seçin.</div>
+                    <div class="select-grid">
+                        @foreach (var h in hizmetler)
+                        {
+                            <label class="select-card hizmet-secim" data-klinik="@h.KlinikId">
+                                <input type="checkbox" name="SeciliHizmetIds" value="@h.Id"
+                                @(Model.SeciliHizmetIds.Contains(h.Id) ? "checked" : "") />
+                                <span class="sc-body">
+                                    <i class="sc-icon bi @HizmetHelper.Ikon(h.Ad)"></i>
+                                    <span class="min-w-0">
+                                        <span class="sc-title d-block text-truncate">@h.Ad</span>
+                                        <span class="sc-sub">@HizmetHelper.SureMetni(h.SureDakika) · @h.Ucret.ToString("N0") ₺</span>
+                                    </span>
+                                    <i class="sc-check bi bi-check-circle-fill"></i>
+                                </span>
+                            </label>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-soft">İptal</a>
+                <button type="submit" class="btn btn-brand"><i class="bi bi-check2 me-1"></i> @ViewData["ButonMetni"]</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CANLI ÖNİZLEME -->
+    <div class="col-lg-4">
+        <div class="preview-sticky">
+            <div class="preview-label">Canlı Önizleme</div>
+            <div class="entity-card">
+                <div class="ec-head">
+                    <span class="avatar avatar-lg" id="onizAvatar">?</span>
+                    <div class="flex-grow-1 min-w-0">
+                        <h3 class="ec-title text-truncate" id="onizAd">Veteriner adı</h3>
+                        <div class="ec-sub text-truncate" id="onizEmail">e-posta adresi</div>
+                    </div>
+                </div>
+                <div class="ec-body">
+                    <div class="info-row"><i class="bi bi-hospital"></i><span id="onizKlinik">Klinik seçilmedi</span></div>
+                    <div class="d-flex flex-wrap gap-1 mt-1" id="onizUzmanlik"></div>
+                    <div class="metric-strip">
+                        <div class="metric"><strong id="onizUzmanlikSayi">0</strong><span>Uzmanlık</span></div>
+                        <div class="metric"><strong id="onizHizmetSayi">0</strong><span>Hizmet</span></div>
+                    </div>
+                </div>
+            </div>
+            <p class="small text-muted mt-3"><i class="bi bi-lightbulb me-1"></i> Kaydettikten sonra haftalık müsaitlik saatlerini gireceksiniz.</p>
+        </div>
+    </div>
+</div>

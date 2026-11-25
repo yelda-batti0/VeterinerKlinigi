@@ -5,6 +5,7 @@ using VeterinerKlinigi.Entities;
 using VeterinerKlinigi.Services;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,13 +24,52 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 3;
 })
+
+
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // İstenen sayfa [Authorize(Roles = "Admin")] ile korunuyor mu?
+    bool AdminSayfasiMi(HttpContext http) =>
+        http.GetEndpoint()?.Metadata
+            .GetOrderedMetadata<AuthorizeAttribute>()
+            .Any(a => a.Roles != null && a.Roles.Split(',').Contains(Roller.Admin)) == true;
+
+    void AdminGiriseYonlendir(HttpContext http)
+    {
+        var donusAdresi = http.Request.Path + http.Request.QueryString;
+        http.Response.Redirect("/AdminGiris?returnUrl=" + Uri.EscapeDataString(donusAdresi));
+    }
+
+    // Giriş yapılmamışsa
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (AdminSayfasiMi(context.HttpContext))
+            AdminGiriseYonlendir(context.HttpContext);
+        else
+            context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+
+    // Giriş yapılmış ama yetki yoksa (örn. üye hesabıyla admin sayfası açılırsa)
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (AdminSayfasiMi(context.HttpContext))
+            AdminGiriseYonlendir(context.HttpContext);
+        else
+            context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
+
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddScoped<IKlinikService, KlinikService>();
 builder.Services.AddScoped<IUzmanlikAlaniService, UzmanlikAlaniService>();
 builder.Services.AddScoped<IHizmetService, HizmetService>();
+builder.Services.AddScoped<IVeterinerService, VeterinerService>();
 
 var app = builder.Build();
 
@@ -63,6 +103,11 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "admin",
+    pattern: "admin",
+    defaults: new { controller = "Dashboard", action = "Index" });
 
 app.MapControllerRoute(
     name: "default",

@@ -1,0 +1,195 @@
+﻿@model VeterinerKlinigi.Models.VeterinerIndexViewModel
+@using VeterinerKlinigi.Models
+@{
+    ViewData["Title"] = "Veterinerler";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+    var bugun = DateTime.Today.DayOfWeek;
+}
+
+<!-- BAŞLIK -->
+<div class="page-head">
+    <div>
+        <div class="eyebrow"><i class="bi bi-person-badge"></i> Personel</div>
+        <h2>Veteriner Hekimler</h2>
+        <p>Hekimleri, uzmanlık alanlarını, verdikleri hizmetleri ve haftalık çalışma programlarını yönetin.</p>
+    </div>
+    @if (Model.Klinikler.Any())
+    {
+        <a asp-action="Create" asp-route-klinikId="@Model.SeciliKlinikId" class="btn btn-brand"><i class="bi bi-plus-lg me-1"></i> Yeni Veteriner Ekle</a>
+    }
+</div>
+
+<!-- İSTATİSTİKLER -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Toplam Veteriner", Deger = Model.ToplamVeteriner.ToString(), Ikon = "bi-person-badge", Ton = "teal" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Bugün Çalışan", Deger = Model.BugunCalisan.ToString(), Ikon = "bi-calendar-check", Ton = "green" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Müsaitliği Girilmemiş", Deger = Model.MusaitlikGirilmemis.ToString(), Ikon = "bi-calendar-x", Ton = Model.MusaitlikGirilmemis > 0 ? "amber" : "slate" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Görev Yapılan Klinik", Deger = Model.KlinikSayisi.ToString(), Ikon = "bi-hospital", Ton = "blue" })' />
+    </div>
+</div>
+
+@if (!Model.Klinikler.Any())
+{
+    <div class="card-modern">
+        <partial name="_AdminBosDurum" model='@(new BosDurumViewModel
+                 {
+                     Ikon = "bi-hospital",
+                     Baslik = "Önce bir klinik eklemelisiniz",
+                     Aciklama = "Veteriner hekimler bir kliniğe bağlı olarak çalışır. Başlamak için ilk kliniğinizi ekleyin.",
+                     ButonMetni = "Klinik Ekle",
+                     ButonUrl = Url.Action("Create", "Klinik")
+                 })' />
+    </div>
+}
+else if (!Model.Veterinerler.Any())
+{
+    <div class="card-modern">
+        <partial name="_AdminBosDurum" model='@(new BosDurumViewModel
+                 {
+                     Ikon = "bi-person-badge",
+                     Baslik = "Henüz veteriner eklenmemiş",
+                     Aciklama = "Veteriner hekimleri ekleyip müsaitlik saatlerini girdiğinizde randevu alınabilir hale gelirler.",
+                     ButonMetni = "İlk Veterineri Ekle",
+                     ButonUrl = Url.Action("Create")
+                 })' />
+    </div>
+}
+else
+{
+    <!-- ARAÇ ÇUBUĞU -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" placeholder="Ad, e-posta, klinik veya uzmanlık ara..." data-liste-ara />
+        </div>
+        <select class="form-select" data-liste-filtre>
+            <option value="">Tüm klinikler</option>
+            @foreach (var k in Model.Klinikler)
+            {
+                <option value="@k.Id" selected="@(Model.SeciliKlinikId == k.Id)">@k.Ad</option>
+            }
+        </select>
+        <select class="form-select" data-liste-sirala>
+            <option value="ad-asc">Ada göre (A-Z)</option>
+            <option value="ad-desc">Ada göre (Z-A)</option>
+            <option value="saat-desc">En çok çalışan</option>
+            <option value="hizmet-desc">En çok hizmet</option>
+            <option value="uzmanlik-desc">En çok uzmanlık</option>
+        </select>
+        <span class="toolbar-count"><strong data-liste-sayac>@Model.Veterinerler.Count</strong> veteriner</span>
+        <div class="view-toggle">
+            <button type="button" data-gorunum="grid" title="Kart görünümü"><i class="bi bi-grid-3x3-gap"></i></button>
+            <button type="button" data-gorunum="list" title="Liste görünümü"><i class="bi bi-list-ul"></i></button>
+        </div>
+    </div>
+
+    <!-- VETERİNER KARTLARI -->
+    <div class="row g-4" data-liste="veteriner">
+        @foreach (var v in Model.Veterinerler)
+        {
+            var bugunAraliklar = VeterinerHelper.BugunkuAraliklar(v);
+            var haftalik = VeterinerHelper.HaftalikSure(v);
+            var calismaGunleri = v.Musaitlikler.Select(m => m.Gun).Distinct().ToList();
+            var silUyari = v.Randevular.Any()
+                ? $"Bu veterinere ait {v.Randevular.Count} randevu bulunduğu için silinemez."
+                : "";
+
+            <div class="col-xl-4 col-md-6 liste-item"
+                 data-ara="@($"{v.Ad} {v.Soyad} {v.Kullanici?.Email} {v.Klinik?.Ad} {string.Join(" ", v.UzmanlikAlanlari.Select(u => u.Ad))}")"
+                 data-durum="@v.KlinikId"
+                 data-ad="@($"{v.Ad} {v.Soyad}")"
+                 data-saat="@((int)haftalik.TotalMinutes)"
+                 data-hizmet="@v.Hizmetler.Count"
+                 data-uzmanlik="@v.UzmanlikAlanlari.Count">
+
+                <div class="entity-card">
+                    <div class="ec-head">
+                        <span class="avatar avatar-lg">@VeterinerHelper.BasHarfler(v)</span>
+                        <div class="flex-grow-1 min-w-0">
+                            <h3 class="ec-title text-truncate" title="@v.AdSoyad">@v.AdSoyad</h3>
+                            <div class="ec-sub text-truncate">@v.Kullanici?.Email</div>
+                        </div>
+                    </div>
+
+                    <div class="ec-body">
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                            @if (bugunAraliklar.Any())
+                            {
+                                var ilk = bugunAraliklar.First();
+                                <span class="chip"><span class="dot"></span>Bugün @ilk.BaslangicSaati.ToString(@"hh\:mm")–@bugunAraliklar.Last().BitisSaati.ToString(@"hh\:mm")</span>
+                            }
+                            else if (!v.Musaitlikler.Any())
+                            {
+                                <span class="chip warn"><i class="bi bi-calendar-x"></i>Müsaitlik girilmemiş</span>
+                            }
+                            else
+                            {
+                                <span class="chip gray"><span class="dot"></span>Bugün çalışmıyor</span>
+                            }
+                        </div>
+
+                        <div class="info-row"><i class="bi bi-hospital"></i><span class="text-truncate">@v.Klinik?.Ad</span></div>
+
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            @foreach (var u in v.UzmanlikAlanlari)
+                            {
+                                <span class="chip blue">@u.Ad</span>
+                            }
+                            @if (!v.UzmanlikAlanlari.Any())
+                            {
+                                <span class="text-muted small">Uzmanlık girilmemiş</span>
+                            }
+                        </div>
+
+                        <div class="week-strip">
+                            @foreach (var gun in GunHelper.HaftaSirasi)
+                            {
+                                <span class="@(calismaGunleri.Contains(gun) ? "on" : "") @(gun == bugun ? "today" : "")" title="@GunHelper.TurkceAd(gun)">@GunHelper.KisaAd(gun)</span>
+                            }
+                        </div>
+
+                        <div class="metric-strip">
+                            <div class="metric"><strong>@v.Hizmetler.Count</strong><span>Hizmet</span></div>
+                            <div class="metric"><strong>@VeterinerHelper.SureMetni(haftalik)</strong><span>Haftalık çalışma</span></div>
+                        </div>
+                    </div>
+
+                    <div class="ec-foot">
+                        <a asp-action="Details" asp-route-id="@v.Id" class="btn-detail"><i class="bi bi-eye"></i> Detaylar</a>
+                        <a asp-action="Musaitlik" asp-route-id="@v.Id" class="btn-icon info" title="Müsaitlik"><i class="bi bi-calendar-week"></i></a>
+                        <a asp-action="Edit" asp-route-id="@v.Id" class="btn-icon edit" title="Düzenle"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn-icon delete" title="Sil"
+                                data-sil-url="@Url.Action("Delete", new { id = v.Id })"
+                                data-sil-ad="@v.AdSoyad"
+                                data-sil-uyari="@silUyari">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ARAMADA SONUÇ YOK -->
+    <div class="card-modern d-none" data-liste-sonucyok>
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-search"></i></div>
+            <h5 class="fw-bold">Eşleşen veteriner bulunamadı</h5>
+            <p>Arama ifadesini ya da klinik filtresini değiştirerek tekrar deneyin.</p>
+            <button type="button" class="btn btn-soft" data-liste-temizle><i class="bi bi-x-circle me-1"></i> Filtreleri temizle</button>
+        </div>
+    </div>
+}
+
+<partial name="_AdminSilModal" />
+
+@section Scripts {
+    <script src="~/js/admin-liste.js" asp-append-version="true"></script>
+}

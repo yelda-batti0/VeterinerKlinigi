@@ -51,9 +51,11 @@ namespace VeterinerKlinigi.Services
         public async Task<Klinik?> GetByIdAsync(int id)
         {
             return await _context.Klinikler
-               .Include(k => k.Hizmetler)
-               .Include(k => k.Veterinerler)
-               .FirstOrDefaultAsync(k => k.Id == id);
+                .Include(k => k.Hizmetler)
+                .Include(k => k.Veterinerler)
+                    .ThenInclude(v => v.UzmanlikAlanlari)
+                .AsSplitQuery()
+                .FirstOrDefaultAsync(k => k.Id == id);
         }
 
         public async Task<string?> UpdateAsync(Klinik klinik)

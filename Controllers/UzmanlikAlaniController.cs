@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using VeterinerKlinigi.Context;
 using VeterinerKlinigi.Entities;
+using VeterinerKlinigi.Models;
 using VeterinerKlinigi.Services;
 
 namespace VeterinerKlinigi.Controllers
@@ -18,11 +19,36 @@ namespace VeterinerKlinigi.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await _uzmanlikService.GetAllAsync());
+            var uzmanliklar = await _uzmanlikService.GetAllAsync();
+            var enYaygin = uzmanliklar
+                .Where(u => u.Veterinerler.Any())
+                .OrderByDescending(u => u.Veterinerler.Count)
+                .FirstOrDefault();
+
+            var model = new UzmanlikIndexViewModel
+            {
+                Uzmanliklar = uzmanliklar,
+                ToplamUzmanlik = uzmanliklar.Count,
+                AtanmisUzmanlik = uzmanliklar.Count(u => u.Veterinerler.Any()),
+                BostaUzmanlik = uzmanliklar.Count(u => !u.Veterinerler.Any()),
+                EnYaygin = enYaygin?.Ad ?? "-"
+            };
+
+            return View(model);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Details(int id)
         {
+            var uzmanlik = await _uzmanlikService.GetByIdAsync(id);
+            if (uzmanlik == null)
+                return NotFound();
+
+            return View(uzmanlik);
+        }
+
+        public async Task<IActionResult> Create()
+        {
+            await MevcutAdlariYukle(0);
             return View(new UzmanlikAlani());
         }
 
@@ -31,12 +57,16 @@ namespace VeterinerKlinigi.Controllers
         public async Task<IActionResult> Create(UzmanlikAlani uzmanlik)
         {
             if (!ModelState.IsValid)
+            {
+                await MevcutAdlariYukle(0);
                 return View(uzmanlik);
+            }
 
             var hata = await _uzmanlikService.CreateAsync(uzmanlik);
             if (hata != null)
             {
                 ModelState.AddModelError(string.Empty, hata);
+                await MevcutAdlariYukle(0);
                 return View(uzmanlik);
             }
 
@@ -50,6 +80,7 @@ namespace VeterinerKlinigi.Controllers
             if (uzmanlik == null)
                 return NotFound();
 
+            await MevcutAdlariYukle(id);
             return View(uzmanlik);
         }
 
@@ -61,12 +92,16 @@ namespace VeterinerKlinigi.Controllers
                 return NotFound();
 
             if (!ModelState.IsValid)
+            {
+                await MevcutAdlariYukle(id);
                 return View(uzmanlik);
+            }
 
             var hata = await _uzmanlikService.UpdateAsync(uzmanlik);
             if (hata != null)
             {
                 ModelState.AddModelError(string.Empty, hata);
+                await MevcutAdlariYukle(id);
                 return View(uzmanlik);
             }
 
@@ -94,6 +129,13 @@ namespace VeterinerKlinigi.Controllers
                 TempData["Basari"] = "Uzmanlık alanı silindi.";
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // Formda "bu isim zaten var" uyarısı için mevcut isimler (düzenlenen kayıt hariç)
+        private async Task MevcutAdlariYukle(int haricId)
+        {
+            var tumu = await _uzmanlikService.GetAllAsync();
+            ViewBag.MevcutAdlar = tumu.Where(u => u.Id != haricId).Select(u => u.Ad).ToList();
         }
     }
 }

@@ -2,21 +2,30 @@
 @{
     ViewData["Title"] = "Hizmet Sil";
     Layout = "~/Views/AdminLayout/Index.cshtml";
+    bool silinemez = Model.Randevular.Any();
 }
 
-<div class="card shadow-sm border-danger" style="max-width: 600px;">
-    <div class="card-header bg-danger text-white fw-semibold">Bu hizmeti silmek istediğinize emin misiniz?</div>
-    <div class="card-body">
-        <dl class="row mb-0">
-            <dt class="col-sm-4">Hizmet</dt><dd class="col-sm-8">@Model.Ad</dd>
-            <dt class="col-sm-4">Klinik</dt><dd class="col-sm-8">@Model.Klinik?.Ad</dd>
-            <dt class="col-sm-4">Süre</dt><dd class="col-sm-8">@Model.SureDakika dk</dd>
-            <dt class="col-sm-4">Ücret</dt><dd class="col-sm-8">@Model.Ucret.ToString("N2") ₺</dd>
-        </dl>
-        <form asp-action="Delete" method="post" class="mt-4 d-flex gap-2">
+<div class="card-modern mx-auto" style="max-width: 520px;">
+    <div class="text-center p-4 p-md-5">
+        <div class="modal-modern"><div class="modal-icon"><i class="bi bi-trash3"></i></div></div>
+        <h4 class="fw-bold mb-2">Hizmeti silmek istediğinize emin misiniz?</h4>
+        <p class="text-muted">
+            <strong class="text-dark">@Model.Ad</strong> (@Model.Klinik?.Ad) kalıcı olarak silinecek. Bu işlem geri alınamaz.
+        </p>
+
+        @if (silinemez)
+        {
+            <div class="alert alert-warning small text-start">
+                Bu hizmete ait @Model.Randevular.Count randevu bulunduğu için silinemez.
+            </div>
+        }
+
+        <form asp-action="Delete" method="post" class="d-flex gap-2 justify-content-center mt-4">
             <input type="hidden" asp-for="Id" />
-            <button type="submit" class="btn btn-danger">Evet, Sil</button>
-            <a asp-action="Index" class="btn btn-secondary">Vazgeç</a>
+            <a asp-action="Index" class="btn btn-soft px-4">Vazgeç</a>
+            <button type="submit" class="btn btn-danger rounded-3 fw-semibold px-4" disabled="@silinemez">
+                <i class="bi bi-trash3 me-1"></i> Evet, Sil
+            </button>
         </form>
     </div>
 </div>

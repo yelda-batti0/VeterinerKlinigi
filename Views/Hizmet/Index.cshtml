@@ -1,61 +1,173 @@
-﻿@model List<VeterinerKlinigi.Entities.Hizmet>
+﻿@model VeterinerKlinigi.Models.HizmetIndexViewModel
+@using VeterinerKlinigi.Models
 @{
     ViewData["Title"] = "Hizmetler";
     Layout = "~/Views/AdminLayout/Index.cshtml";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Hizmetler</h4>
-    <a asp-action="Create" asp-route-klinikId="@ViewBag.SeciliKlinikId" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni Hizmet</a>
+<!-- BAŞLIK -->
+<div class="page-head">
+    <div>
+        <div class="eyebrow"><i class="bi bi-clipboard2-pulse"></i> Klinik Yönetimi</div>
+        <h2>Hizmetler</h2>
+        <p>Kliniklerin sunduğu muayene, aşı, bakım gibi hizmetleri, sürelerini ve ücretlerini yönetin.</p>
+    </div>
+    @if (Model.Klinikler.Any())
+    {
+        <a asp-action="Create" asp-route-klinikId="@Model.SeciliKlinikId" class="btn btn-brand"><i class="bi bi-plus-lg me-1"></i> Yeni Hizmet Ekle</a>
+    }
 </div>
 
-<form method="get" class="row g-2 mb-3" style="max-width: 500px;">
-    <div class="col">
-        <select name="klinikId" asp-items="ViewBag.Klinikler" class="form-select" onchange="this.form.submit()">
-            <option value="">Tüm Klinikler</option>
+<!-- İSTATİSTİKLER -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Toplam Hizmet", Deger = Model.ToplamHizmet.ToString(), Ikon = "bi-clipboard2-pulse", Ton = "teal" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Ortalama Ücret", Deger = Model.OrtalamaUcret.ToString("N0") + " ₺", Ikon = "bi-cash-coin", Ton = "blue" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Ortalama Süre", Deger = HizmetHelper.SureMetni(Model.OrtalamaSure), Ikon = "bi-stopwatch", Ton = "green" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Veteriner Atanmamış", Deger = Model.VeterinersizHizmet.ToString(), Ikon = "bi-exclamation-triangle", Ton = Model.VeterinersizHizmet > 0 ? "amber" : "slate" })' />
+    </div>
+</div>
+
+@if (!Model.Klinikler.Any())
+{
+    <!-- HİÇ KLİNİK YOK -->
+    <div class="card-modern">
+        <partial name="_AdminBosDurum" model='@(new BosDurumViewModel
+                 {
+                     Ikon = "bi-hospital",
+                     Baslik = "Önce bir klinik eklemelisiniz",
+                     Aciklama = "Hizmetler bir kliniğe bağlı olarak tanımlanır. Başlamak için ilk kliniğinizi ekleyin.",
+                     ButonMetni = "Klinik Ekle",
+                     ButonUrl = Url.Action("Create", "Klinik")
+                 })' />
+    </div>
+}
+else if (!Model.Hizmetler.Any())
+{
+    <!-- HİÇ HİZMET YOK -->
+    <div class="card-modern">
+        <partial name="_AdminBosDurum" model='@(new BosDurumViewModel
+                 {
+                     Ikon = "bi-clipboard2-pulse",
+                     Baslik = "Henüz hizmet eklenmemiş",
+                     Aciklama = "Muayene, aşı, kısırlaştırma gibi hizmetleri ekleyerek randevu sistemini hazırlayın.",
+                     ButonMetni = "İlk Hizmeti Ekle",
+                     ButonUrl = Url.Action("Create")
+                 })' />
+    </div>
+}
+else
+{
+    <!-- ARAÇ ÇUBUĞU -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" placeholder="Hizmet, klinik veya açıklama ara..." data-liste-ara />
+        </div>
+        <select class="form-select" data-liste-filtre>
+            <option value="">Tüm klinikler</option>
+            @foreach (var k in Model.Klinikler)
+            {
+                <option value="@k.Id" selected="@(Model.SeciliKlinikId == k.Id)">@k.Ad</option>
+            }
         </select>
+        <select class="form-select" data-liste-sirala>
+            <option value="ad-asc">Ada göre (A-Z)</option>
+            <option value="ad-desc">Ada göre (Z-A)</option>
+            <option value="ucret-asc">Ücret (artan)</option>
+            <option value="ucret-desc">Ücret (azalan)</option>
+            <option value="sure-asc">Süre (kısadan uzuna)</option>
+            <option value="sure-desc">Süre (uzundan kısaya)</option>
+            <option value="veteriner-desc">En çok veteriner</option>
+        </select>
+        <span class="toolbar-count"><strong data-liste-sayac>@Model.Hizmetler.Count</strong> hizmet</span>
+        <div class="view-toggle">
+            <button type="button" data-gorunum="grid" title="Kart görünümü"><i class="bi bi-grid-3x3-gap"></i></button>
+            <button type="button" data-gorunum="list" title="Liste görünümü"><i class="bi bi-list-ul"></i></button>
+        </div>
     </div>
-</form>
 
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Hizmet</th>
-                    <th>Klinik</th>
-                    <th>Süre</th>
-                    <th>Ücret</th>
-                    <th>Veteriner</th>
-                    <th class="text-end">İşlemler</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="6" class="text-center text-muted py-4">Hizmet bulunamadı.</td></tr>
-                }
-                @foreach (var h in Model)
-                {
-                    <tr>
-                        <td>
-                            <div class="fw-semibold">@h.Ad</div>
-                            @if (!string.IsNullOrEmpty(h.Aciklama))
-                            {
-                                <small class="text-muted">@h.Aciklama</small>
-                            }
-                        </td>
-                        <td>@h.Klinik?.Ad</td>
-                        <td>@h.SureDakika dk</td>
-                        <td>@h.Ucret.ToString("N2") ₺</td>
-                        <td><span class="badge bg-secondary">@h.Veterinerler.Count</span></td>
-                        <td class="text-end">
-                            <a asp-action="Edit" asp-route-id="@h.Id" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
-                            <a asp-action="Delete" asp-route-id="@h.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+    <!-- HİZMET KARTLARI -->
+    <div class="row g-4" data-liste="hizmet">
+        @foreach (var h in Model.Hizmetler)
+        {
+            var silUyari = h.Randevular.Any()
+                ? $"Bu hizmete ait {h.Randevular.Count} randevu bulunduğu için silinemez."
+                : "";
+
+            <div class="col-xl-4 col-md-6 liste-item"
+                 data-ara="@($"{h.Ad} {h.Klinik?.Ad} {h.Aciklama}")"
+                 data-durum="@h.KlinikId"
+                 data-ad="@h.Ad"
+                 data-ucret="@((int)(h.Ucret * 100))"
+                 data-sure="@h.SureDakika"
+                 data-veteriner="@h.Veterinerler.Count">
+
+                <div class="entity-card">
+                    <div class="ec-head">
+                        <div class="ec-icon"><i class="bi @HizmetHelper.Ikon(h.Ad)"></i></div>
+                        <div class="flex-grow-1 min-w-0">
+                            <h3 class="ec-title text-truncate" title="@h.Ad">@h.Ad</h3>
+                            <div class="ec-sub text-truncate"><i class="bi bi-hospital me-1"></i>@h.Klinik?.Ad</div>
+                        </div>
+                        <span class="chip blue"><i class="bi bi-stopwatch"></i>@HizmetHelper.SureMetni(h.SureDakika)</span>
+                    </div>
+
+                    <div class="ec-body">
+                        @if (!string.IsNullOrWhiteSpace(h.Aciklama))
+                        {
+                            <p class="text-muted small line-clamp-2 mb-0">@h.Aciklama</p>
+                        }
+                        else
+                        {
+                            <p class="text-muted small fst-italic mb-0">Açıklama eklenmemiş</p>
+                        }
+
+                        <div class="metric-strip">
+                            <div class="metric"><strong>@h.Ucret.ToString("N2") ₺</strong><span>Ücret</span></div>
+                            <div class="metric"><strong>@h.Veterinerler.Count</strong><span>Veteriner</span></div>
+                        </div>
+
+                        @if (!h.Veterinerler.Any())
+                        {
+                            <div class="mt-2"><span class="chip warn"><i class="bi bi-exclamation-triangle"></i>Veteriner atanmamış</span></div>
+                        }
+                    </div>
+
+                    <div class="ec-foot">
+                        <a asp-action="Details" asp-route-id="@h.Id" class="btn-detail"><i class="bi bi-eye"></i> Detayları Gör</a>
+                        <a asp-action="Edit" asp-route-id="@h.Id" class="btn-icon edit" title="Düzenle"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn-icon delete" title="Sil"
+                                data-sil-url="@Url.Action("Delete", new { id = h.Id })"
+                                data-sil-ad="@h.Ad"
+                                data-sil-uyari="@silUyari">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
-</div>
+
+    <!-- ARAMADA SONUÇ YOK -->
+    <div class="card-modern d-none" data-liste-sonucyok>
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-search"></i></div>
+            <h5 class="fw-bold">Eşleşen hizmet bulunamadı</h5>
+            <p>Arama ifadesini ya da klinik filtresini değiştirerek tekrar deneyin.</p>
+            <button type="button" class="btn btn-soft" data-liste-temizle><i class="bi bi-x-circle me-1"></i> Filtreleri temizle</button>
+        </div>
+    </div>
+}
+
+<partial name="_AdminSilModal" />
+
+@section Scripts {
+    <script src="~/js/admin-liste.js" asp-append-version="true"></script>
+}

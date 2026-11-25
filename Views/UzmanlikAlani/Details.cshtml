@@ -1,0 +1,93 @@
+﻿@model VeterinerKlinigi.Entities.UzmanlikAlani
+@using VeterinerKlinigi.Models
+@{
+    ViewData["Title"] = "Uzmanlık Detayı";
+    Layout = "~/Views/AdminLayout/Index.cshtml";
+    var veterinerler = Model.Veterinerler.OrderBy(v => v.Ad).ToList();
+    var klinikSayisi = veterinerler.Select(v => v.KlinikId).Distinct().Count();
+    var silUyari = veterinerler.Any()
+        ? $"Bu uzmanlık alanına sahip {veterinerler.Count} veteriner bulunduğu için silinemez. Önce veterinerlerden bu uzmanlığı kaldırmalısınız."
+        : "";
+}
+
+<div class="page-head">
+    <div>
+        <a asp-action="Index" class="back-link"><i class="bi bi-arrow-left"></i> Uzmanlık Alanları</a>
+        <h2>@Model.Ad</h2>
+        <p>Bu uzmanlık alanına sahip veteriner hekimler ve çalıştıkları klinikler.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-soft"><i class="bi bi-pencil me-1"></i> Düzenle</a>
+        <button type="button" class="btn btn-soft text-danger"
+                data-sil-url="@Url.Action("Delete", new { id = Model.Id })"
+                data-sil-ad="@Model.Ad"
+                data-sil-uyari="@silUyari">
+            <i class="bi bi-trash3 me-1"></i> Sil
+        </button>
+    </div>
+</div>
+
+<!-- ÜST BİLGİ KARTI -->
+<div class="card-modern mb-4">
+    <div class="d-flex flex-wrap gap-4 align-items-center p-4">
+        <div class="ec-icon xl"><i class="bi @UzmanlikHelper.Ikon(Model.Ad)"></i></div>
+        <div class="flex-grow-1 min-w-0">
+            <h4 class="fw-bold mb-2">@Model.Ad</h4>
+            @if (veterinerler.Any())
+            {
+                <span class="chip"><span class="dot"></span>Aktif olarak kullanılıyor</span>
+            }
+            else
+            {
+                <span class="chip warn"><i class="bi bi-person-dash"></i>Henüz hiçbir veterinere atanmamış</span>
+            }
+        </div>
+    </div>
+    <div class="detail-stats" style="grid-template-columns: repeat(2, 1fr);">
+        <div><strong>@veterinerler.Count</strong><span>Veteriner hekim</span></div>
+        <div><strong>@klinikSayisi</strong><span>Farklı klinik</span></div>
+    </div>
+</div>
+
+<!-- VETERİNERLER -->
+<div class="card-modern">
+    <div class="card-modern-header">
+        <span><i class="bi bi-person-badge me-2 text-muted"></i>Bu Uzmanlığa Sahip Veterinerler</span>
+        <a asp-controller="Veteriner" asp-action="Index" class="btn btn-sm btn-soft">Veterinerleri Yönet</a>
+    </div>
+    @if (!veterinerler.Any())
+    {
+        <partial name="_AdminBosDurum" model='@(new BosDurumViewModel
+                 {
+                     Ikon = "bi-person-dash",
+                     Baslik = "Veteriner yok",
+                     Aciklama = "Bu uzmanlığı bir veterinere atamak için veteriner düzenleme sayfasını kullanabilirsiniz."
+                 })' />
+    }
+    else
+    {
+        @foreach (var v in veterinerler)
+        {
+            <div class="list-row">
+                <span class="avatar">@(v.Ad.Substring(0, 1))@(v.Soyad.Substring(0, 1))</span>
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-semibold">@v.AdSoyad</div>
+                    <small class="text-muted"><i class="bi bi-hospital me-1"></i>@v.Klinik?.Ad</small>
+                </div>
+                <div class="d-none d-md-flex flex-wrap gap-1 justify-content-end">
+                    @foreach (var diger in v.UzmanlikAlanlari.Where(x => x.Id != Model.Id))
+                    {
+                        <span class="chip gray">@diger.Ad</span>
+                    }
+                </div>
+                <a asp-controller="Veteriner" asp-action="Edit" asp-route-id="@v.Id" class="btn-icon edit" title="Düzenle"><i class="bi bi-pencil"></i></a>
+            </div>
+        }
+    }
+</div>
+
+<partial name="_AdminSilModal" />
+
+@section Scripts {
+    <script src="~/js/admin-liste.js" asp-append-version="true"></script>
+}

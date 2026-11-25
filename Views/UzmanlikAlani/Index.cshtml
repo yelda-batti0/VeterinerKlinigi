@@ -1,41 +1,154 @@
-﻿@model List<VeterinerKlinigi.Entities.UzmanlikAlani>
+﻿@model VeterinerKlinigi.Models.UzmanlikIndexViewModel
+@using VeterinerKlinigi.Models
 @{
     ViewData["Title"] = "Uzmanlık Alanları";
     Layout = "~/Views/AdminLayout/Index.cshtml";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">Uzmanlık Alanları</h4>
-    <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni Uzmanlık Alanı</a>
+<!-- BAŞLIK -->
+<div class="page-head">
+    <div>
+        <div class="eyebrow"><i class="bi bi-award"></i> Klinik Yönetimi</div>
+        <h2>Uzmanlık Alanları</h2>
+        <p>Veteriner hekimlere atanabilecek uzmanlık alanlarını tanımlayın ve dağılımını takip edin.</p>
+    </div>
+    <a asp-action="Create" class="btn btn-brand"><i class="bi bi-plus-lg me-1"></i> Yeni Uzmanlık Ekle</a>
 </div>
 
-<div class="card shadow-sm" style="max-width: 700px;">
-    <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th>Uzmanlık Alanı</th>
-                    <th>Veteriner Sayısı</th>
-                    <th class="text-end">İşlemler</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (!Model.Any())
-                {
-                    <tr><td colspan="3" class="text-center text-muted py-4">Henüz uzmanlık alanı eklenmemiş.</td></tr>
-                }
-                @foreach (var u in Model)
-                {
-                    <tr>
-                        <td class="fw-semibold">@u.Ad</td>
-                        <td><span class="badge bg-secondary">@u.Veterinerler.Count</span></td>
-                        <td class="text-end">
-                            <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-outline-warning"><i class="bi bi-pencil"></i></a>
-                            <a asp-action="Delete" asp-route-id="@u.Id" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<!-- İSTATİSTİKLER -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Toplam Uzmanlık", Deger = Model.ToplamUzmanlik.ToString(), Ikon = "bi-award", Ton = "teal" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Veterineri Olan", Deger = Model.AtanmisUzmanlik.ToString(), Ikon = "bi-person-check", Ton = "green" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "Boşta Kalan", Deger = Model.BostaUzmanlik.ToString(), Ikon = "bi-person-dash", Ton = Model.BostaUzmanlik > 0 ? "amber" : "slate" })' />
+    </div>
+    <div class="col-6 col-xl-3">
+        <partial name="_AdminStatKart" model='@(new StatKartViewModel { Baslik = "En Yaygın Uzmanlık", Deger = Model.EnYaygin, Ikon = "bi-trophy", Ton = "blue" })' />
     </div>
 </div>
+
+@if (!Model.Uzmanliklar.Any())
+{
+    <div class="card-modern">
+        <partial name="_AdminBosDurum" model='@(new BosDurumViewModel
+                 {
+                     Ikon = "bi-award",
+                     Baslik = "Henüz uzmanlık alanı eklenmemiş",
+                     Aciklama = "Küçük hayvan, cerrahi, dermatoloji gibi uzmanlık alanlarını ekleyerek veterinerlere atayabilirsiniz.",
+                     ButonMetni = "İlk Uzmanlığı Ekle",
+                     ButonUrl = Url.Action("Create")
+                 })' />
+    </div>
+}
+else
+{
+    <!-- ARAÇ ÇUBUĞU -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input type="text" class="form-control" placeholder="Uzmanlık, veteriner veya klinik ara..." data-liste-ara />
+        </div>
+        <select class="form-select" data-liste-filtre>
+            <option value="">Tümü</option>
+            <option value="atanmis">Veterineri olan</option>
+            <option value="bosta">Boşta olan</option>
+        </select>
+        <select class="form-select" data-liste-sirala>
+            <option value="ad-asc">Ada göre (A-Z)</option>
+            <option value="ad-desc">Ada göre (Z-A)</option>
+            <option value="veteriner-desc">En çok veteriner</option>
+            <option value="veteriner-asc">En az veteriner</option>
+        </select>
+        <span class="toolbar-count"><strong data-liste-sayac>@Model.Uzmanliklar.Count</strong> uzmanlık</span>
+        <div class="view-toggle">
+            <button type="button" data-gorunum="grid" title="Kart görünümü"><i class="bi bi-grid-3x3-gap"></i></button>
+            <button type="button" data-gorunum="list" title="Liste görünümü"><i class="bi bi-list-ul"></i></button>
+        </div>
+    </div>
+
+    <!-- UZMANLIK KARTLARI -->
+    <div class="row g-4" data-liste="uzmanlik">
+        @foreach (var u in Model.Uzmanliklar)
+        {
+            var veterinerler = u.Veterinerler.OrderBy(v => v.Ad).ToList();
+            var klinikler = veterinerler.Where(v => v.Klinik != null).Select(v => v.Klinik!.Ad).Distinct().ToList();
+            var silUyari = veterinerler.Any()
+                ? $"Bu uzmanlık alanına sahip {veterinerler.Count} veteriner bulunduğu için silinemez. Önce veterinerlerden bu uzmanlığı kaldırmalısınız."
+                : "";
+
+            <div class="col-xl-3 col-lg-4 col-md-6 liste-item"
+                 data-ara="@($"{u.Ad} {string.Join(" ", veterinerler.Select(v => v.Ad + " " + v.Soyad))} {string.Join(" ", klinikler)}")"
+                 data-durum="@(veterinerler.Any() ? "atanmis" : "bosta")"
+                 data-ad="@u.Ad"
+                 data-veteriner="@veterinerler.Count">
+
+                <div class="entity-card">
+                    <div class="ec-head">
+                        <div class="ec-icon"><i class="bi @UzmanlikHelper.Ikon(u.Ad)"></i></div>
+                        <div class="flex-grow-1 min-w-0">
+                            <h3 class="ec-title text-truncate" title="@u.Ad">@u.Ad</h3>
+                            <div class="ec-sub">@veterinerler.Count veteriner · @klinikler.Count klinik</div>
+                        </div>
+                    </div>
+
+                    <div class="ec-body">
+                        @if (veterinerler.Any())
+                        {
+                            <div class="avatar-stack mb-3">
+                                @foreach (var v in veterinerler.Take(5))
+                                {
+                                    <span class="avatar" title="@v.AdSoyad">@(v.Ad.Substring(0, 1))@(v.Soyad.Substring(0, 1))</span>
+                                }
+                                @if (veterinerler.Count > 5)
+                                {
+                                    <span class="avatar more">+@(veterinerler.Count - 5)</span>
+                                }
+                            </div>
+                            <div class="d-flex flex-wrap gap-1">
+                                @foreach (var k in klinikler)
+                                {
+                                    <span class="chip gray"><i class="bi bi-hospital"></i>@k</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="chip warn"><i class="bi bi-person-dash"></i>Boşta, veteriner yok</span>
+                        }
+                    </div>
+
+                    <div class="ec-foot">
+                        <a asp-action="Details" asp-route-id="@u.Id" class="btn-detail"><i class="bi bi-eye"></i> Detaylar</a>
+                        <a asp-action="Edit" asp-route-id="@u.Id" class="btn-icon edit" title="Düzenle"><i class="bi bi-pencil"></i></a>
+                        <button type="button" class="btn-icon delete" title="Sil"
+                                data-sil-url="@Url.Action("Delete", new { id = u.Id })"
+                                data-sil-ad="@u.Ad"
+                                data-sil-uyari="@silUyari">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- ARAMADA SONUÇ YOK -->
+    <div class="card-modern d-none" data-liste-sonucyok>
+        <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-search"></i></div>
+            <h5 class="fw-bold">Eşleşen uzmanlık alanı bulunamadı</h5>
+            <p>Arama ifadesini ya da filtreyi değiştirerek tekrar deneyin.</p>
+            <button type="button" class="btn btn-soft" data-liste-temizle><i class="bi bi-x-circle me-1"></i> Filtreleri temizle</button>
+        </div>
+    </div>
+}
+
+<partial name="_AdminSilModal" />
+
+@section Scripts {
+    <script src="~/js/admin-liste.js" asp-append-version="true"></script>
+}

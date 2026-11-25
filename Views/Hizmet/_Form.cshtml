@@ -1,36 +1,100 @@
 ﻿@model VeterinerKlinigi.Entities.Hizmet
 
-@if (!ViewData.ModelState.IsValid)
-{
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
-}
+<div class="row g-4">
+    <!-- FORM -->
+    <div class="col-lg-8">
+        <div class="card-modern">
+            <div class="card-modern-body p-4">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                }
 
-<div class="row g-3">
-    <div class="col-md-6">
-        <label asp-for="KlinikId" class="form-label"></label>
-        <select asp-for="KlinikId" asp-items="ViewBag.Klinikler" class="form-select">
-            <option value="">-- Klinik seçin --</option>
-        </select>
-        <span asp-validation-for="KlinikId" class="text-danger small"></span>
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-teal"><i class="bi bi-info-circle"></i></span> Genel Bilgiler</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="KlinikId" class="form-label"></label>
+                            <select asp-for="KlinikId" asp-items="ViewBag.Klinikler" class="form-select">
+                                <option value="">-- Klinik seçin --</option>
+                            </select>
+                            <span asp-validation-for="KlinikId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Ad" class="form-label"></label>
+                            <input asp-for="Ad" class="form-control" placeholder="Örn: Genel Muayene" />
+                            <span asp-validation-for="Ad" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-blue"><i class="bi bi-stopwatch"></i></span> Süre ve Ücret</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="SureDakika" class="form-label"></label>
+                            <input asp-for="SureDakika" class="form-control" />
+                            <div class="quick-chips">
+                                <button type="button" class="quick-chip" data-sure="15">15 dk</button>
+                                <button type="button" class="quick-chip" data-sure="30">30 dk</button>
+                                <button type="button" class="quick-chip" data-sure="45">45 dk</button>
+                                <button type="button" class="quick-chip" data-sure="60">1 saat</button>
+                                <button type="button" class="quick-chip" data-sure="90">1,5 saat</button>
+                                <button type="button" class="quick-chip" data-sure="120">2 saat</button>
+                            </div>
+                            <span asp-validation-for="SureDakika" class="text-danger small"></span>
+                            <div class="small text-muted mt-2"><i class="bi bi-info-circle me-1"></i>Randevu çakışma kontrolünde bu süre kullanılır.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Ucret" class="form-label"></label>
+                            <div class="input-group">
+                                <input asp-for="Ucret" class="form-control" placeholder="Örn: 500,00" />
+                                <span class="input-group-text bg-white">₺</span>
+                            </div>
+                            <span asp-validation-for="Ucret" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <div class="form-section-title"><span class="stat-icon tone-amber"><i class="bi bi-card-text"></i></span> Açıklama</div>
+                    <textarea asp-for="Aciklama" class="form-control" rows="3" maxlength="500" placeholder="Hizmetin kapsamını kısaca açıklayın (isteğe bağlı)"></textarea>
+                    <div class="d-flex justify-content-between mt-1">
+                        <span asp-validation-for="Aciklama" class="text-danger small"></span>
+                        <span class="char-count"><span id="aciklamaSayac">0</span> / 500</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a asp-action="Index" class="btn btn-soft">İptal</a>
+                <button type="submit" class="btn btn-brand"><i class="bi bi-check2 me-1"></i> @ViewData["ButonMetni"]</button>
+            </div>
+        </div>
     </div>
-    <div class="col-md-6">
-        <label asp-for="Ad" class="form-label"></label>
-        <input asp-for="Ad" class="form-control" placeholder="Örn: Genel Muayene" />
-        <span asp-validation-for="Ad" class="text-danger small"></span>
-    </div>
-    <div class="col-md-6">
-        <label asp-for="SureDakika" class="form-label"></label>
-        <input asp-for="SureDakika" class="form-control" />
-        <span asp-validation-for="SureDakika" class="text-danger small"></span>
-    </div>
-    <div class="col-md-6">
-        <label asp-for="Ucret" class="form-label"></label>
-        <input asp-for="Ucret" class="form-control" placeholder="Örn: 500,00" />
-        <span asp-validation-for="Ucret" class="text-danger small"></span>
-    </div>
-    <div class="col-12">
-        <label asp-for="Aciklama" class="form-label"></label>
-        <textarea asp-for="Aciklama" class="form-control" rows="3"></textarea>
-        <span asp-validation-for="Aciklama" class="text-danger small"></span>
+
+    <!-- CANLI ÖNİZLEME -->
+    <div class="col-lg-4">
+        <div class="preview-sticky">
+            <div class="preview-label">Canlı Önizleme</div>
+            <div class="entity-card">
+                <div class="ec-head">
+                    <div class="ec-icon"><i id="onizIkon" class="bi bi-clipboard2-pulse"></i></div>
+                    <div class="flex-grow-1 min-w-0">
+                        <h3 class="ec-title text-truncate" id="onizAd">Hizmet adı</h3>
+                        <div class="ec-sub text-truncate"><i class="bi bi-hospital me-1"></i><span id="onizKlinik">Klinik seçilmedi</span></div>
+                    </div>
+                    <span class="chip blue"><i class="bi bi-stopwatch"></i><span id="onizSure">-- dk</span></span>
+                </div>
+                <div class="ec-body">
+                    <p class="text-muted small line-clamp-2 mb-0" id="onizAciklama">Açıklama eklenmemiş</p>
+                    <div class="metric-strip">
+                        <div class="metric"><strong><span id="onizUcret">0,00</span> ₺</strong><span>Ücret</span></div>
+                        <div class="metric"><strong>@Model.Veterinerler.Count</strong><span>Veteriner</span></div>
+                    </div>
+                </div>
+            </div>
+            <p class="small text-muted mt-3"><i class="bi bi-lightbulb me-1"></i> Hizmet, listede bu kart şeklinde görünecek.</p>
+        </div>
     </div>
 </div>

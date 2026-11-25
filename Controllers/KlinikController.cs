@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using VeterinerKlinigi.Context;
 using VeterinerKlinigi.Entities;
 using VeterinerKlinigi.Services;
+using VeterinerKlinigi.Models;
 
 namespace VeterinerKlinigi.Controllers
 {
@@ -19,9 +20,28 @@ namespace VeterinerKlinigi.Controllers
         public async Task<IActionResult> Index()
         {
             var klinikler = await _klinikService.GetAllAsync();
-            return View(klinikler);
+            var acikSayisi = klinikler.Count(KlinikHelper.SuAnAcikMi);
+
+            var model = new KlinikIndexViewModel
+            {
+                Klinikler = klinikler,
+                ToplamKlinik = klinikler.Count,
+                AcikKlinik = acikSayisi,
+                KapaliKlinik = klinikler.Count - acikSayisi,
+                ToplamVeteriner = klinikler.Sum(k => k.Veterinerler.Count)
+            };
+
+            return View(model);
         }
 
+        public async Task<IActionResult> Details(int id)
+        {
+            var klinik = await _klinikService.GetByIdAsync(id);
+            if (klinik == null)
+                return NotFound();
+
+            return View(klinik);
+        }
         public IActionResult Create()
         {
             var klinik = new Klinik

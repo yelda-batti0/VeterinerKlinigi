@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using VeterinerKlinigi.Context;
 using VeterinerKlinigi.Entities;
 using VeterinerKlinigi.Services;
+using VeterinerKlinigi.Models;
 
 namespace VeterinerKlinigi.Controllers
 {
@@ -21,9 +22,29 @@ namespace VeterinerKlinigi.Controllers
 
         public async Task<IActionResult> Index(int? klinikId)
         {
-            await KlinikleriYukle(klinikId);
-            ViewBag.SeciliKlinikId = klinikId;
-            return View(await _hizmetService.GetAllAsync(klinikId));
+            var hizmetler = await _hizmetService.GetAllAsync();
+
+            var model = new HizmetIndexViewModel
+            {
+                Hizmetler = hizmetler,
+                Klinikler = await _klinikService.GetAllAsync(),
+                SeciliKlinikId = klinikId,
+                ToplamHizmet = hizmetler.Count,
+                OrtalamaUcret = hizmetler.Any() ? hizmetler.Average(h => h.Ucret) : 0,
+                OrtalamaSure = hizmetler.Any() ? (int)Math.Round(hizmetler.Average(h => h.SureDakika)) : 0,
+                VeterinersizHizmet = hizmetler.Count(h => !h.Veterinerler.Any())
+            };
+
+            return View(model);
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            var hizmet = await _hizmetService.GetByIdAsync(id);
+            if (hizmet == null)
+                return NotFound();
+
+            return View(hizmet);
         }
 
         public async Task<IActionResult> Create(int? klinikId)

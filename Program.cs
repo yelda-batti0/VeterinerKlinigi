@@ -1,84 +1,70 @@
+using System.Globalization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using VeterinerKlinigi.Context;
 using VeterinerKlinigi.Entities;
-using VeterinerKlinigi.Services;
-using System.Globalization;
-using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+// Veritabanı bağlantısı (appsettings.json'daki DefaultConnection)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("DefaultConnection bulunamadı.");
+
+builder.Services.AddDbContext<VeterinerContext>(options => options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+// Identity (kullanıcı ve rol sistemi)
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedAccount = false;
+    // Hocanın istediği "sau" şifresi kabul edilsin diye şifre kuralları gevşetildi
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
     options.Password.RequireNonAlphanumeric = false;
     options.Password.RequiredLength = 3;
+    options.User.RequireUniqueEmail = true;
 })
+    .AddEntityFrameworkStores<VeterinerContext>()
+    .AddDefaultTokenProviders();
 
-
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-
+// Giriş yapılmadan korumalı bir sayfa açılırsa nereye yönlendirilecek?
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    // İstenen sayfa [Authorize(Roles = "Admin")] ile korunuyor mu?
-    bool AdminSayfasiMi(HttpContext http) =>
-        http.GetEndpoint()?.Metadata
-            .GetOrderedMetadata<AuthorizeAttribute>()
-            .Any(a => a.Roles != null && a.Roles.Split(',').Contains(Roller.Admin)) == true;
+    // Sitenin kullanıcı tarafı (üye ve veteriner girişi) - bu sayfayı ileride yapacağız
+    options.LoginPath = "/Hesap/Login";
+    options.AccessDeniedPath = "/Hesap/Login";
 
-    void AdminGiriseYonlendir(HttpContext http)
+    // Admin paneline (/Admin/...) giriş yapılmadan ya da yetkisiz girilirse yönetici giriş sayfasına gönder
+    Task Yonlendir(Microsoft.AspNetCore.Authentication.RedirectContext<Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationOptions> context)
     {
-        var donusAdresi = http.Request.Path + http.Request.QueryString;
-        http.Response.Redirect("/AdminGiris?returnUrl=" + Uri.EscapeDataString(donusAdresi));
+        if (context.Request.Path.StartsWithSegments("/Admin"))
+        {
+            var donusAdresi = context.Request.Path + context.Request.QueryString;
+            context.Response.Redirect("/Admin/AdminGiris?returnUrl=" + Uri.EscapeDataString(donusAdresi));
+        }
+        else
+        {
+            context.Response.Redirect(context.RedirectUri);
+        }
+        return Task.CompletedTask;
     }
 
-    // Giriş yapılmamışsa
-    options.Events.OnRedirectToLogin = context =>
-    {
-        if (AdminSayfasiMi(context.HttpContext))
-            AdminGiriseYonlendir(context.HttpContext);
-        else
-            context.Response.Redirect(context.RedirectUri);
-        return Task.CompletedTask;
-    };
-
-    // Giriş yapılmış ama yetki yoksa (örn. üye hesabıyla admin sayfası açılırsa)
-    options.Events.OnRedirectToAccessDenied = context =>
-    {
-        if (AdminSayfasiMi(context.HttpContext))
-            AdminGiriseYonlendir(context.HttpContext);
-        else
-            context.Response.Redirect(context.RedirectUri);
-        return Task.CompletedTask;
-    };
+    options.Events.OnRedirectToLogin = Yonlendir;
+    options.Events.OnRedirectToAccessDenied = Yonlendir;
 });
 
+builder.Services.AddAutoMapper(typeof(Program));
 builder.Services.AddControllersWithViews();
-
-builder.Services.AddScoped<IKlinikService, KlinikService>();
-builder.Services.AddScoped<IUzmanlikAlaniService, UzmanlikAlaniService>();
-builder.Services.AddScoped<IHizmetService, HizmetService>();
-builder.Services.AddScoped<IVeterinerService, VeterinerService>();
 
 var app = builder.Build();
 
+// Rolleri ve admin hesabını oluştur
 using (var scope = app.Services.CreateScope())
 {
     await SeedData.BaslatAsync(scope.ServiceProvider);
 }
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseMigrationsEndPoint();
@@ -86,11 +72,13 @@ if (app.Environment.IsDevelopment())
 else
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+// Türkçe kültür (ondalık virgül, Türkçe tarih ve ay adları)
 var trKultur = new CultureInfo("tr-TR");
 app.UseRequestLocalization(new RequestLocalizationOptions
 {
@@ -98,23 +86,19 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedCultures = new List<CultureInfo> { trKultur },
     SupportedUICultures = new List<CultureInfo> { trKultur }
 });
+
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapStaticAssets();
-
+// Admin paneli (Areas/Admin)
 app.MapControllerRoute(
-    name: "admin",
-    pattern: "admin",
-    defaults: new { controller = "Dashboard", action = "Index" });
+    name: "areas",
+    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
-app.MapRazorPages()
-   .WithStaticAssets();
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

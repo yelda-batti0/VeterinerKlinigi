@@ -1,16 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace VeterinerKlinigi.Entities
+﻿namespace VeterinerKlinigi.Entities
 {
     public class UzmanlikAlani
     {
-        public int Id { get; set; }
-
-        [Required(ErrorMessage = "Uzmanlık adı zorunludur.")]
-        [StringLength(100)]
-        [Display(Name = "Uzmanlık Alanı")]
+        public int UzmanlikAlaniId { get; set; }
         public string Ad { get; set; } = string.Empty;
 
-        public ICollection<VeterinerHekim> Veterinerler { get; set; } = new List<VeterinerHekim>();
+        public List<Veteriner> Veterinerler { get; set; } = new();
     }
 }

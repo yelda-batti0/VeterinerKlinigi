@@ -4,6 +4,7 @@ using VeterinerKlinigi.Context;
 
 namespace VeterinerKlinigi.Controllers
 {
+    [Area("Admin")]
     [Authorize(Roles = Roller.Admin)]
     public class DashboardController : Controller
     {

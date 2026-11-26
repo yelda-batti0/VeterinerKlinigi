@@ -8,8 +8,8 @@ namespace VeterinerKlinigi.Context
     {
         public static async Task BaslatAsync(IServiceProvider services)
         {
-            var context = services.GetRequiredService<ApplicationDbContext>();
-            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+            var context = services.GetRequiredService<VeterinerContext>();
+            var userManager = services.GetRequiredService<UserManager<AppUser>>();
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
             // Bekleyen migration varsa uygula
@@ -24,12 +24,12 @@ namespace VeterinerKlinigi.Context
 
             // Admin kullanıcısını oluştur
             // DİKKAT: Kendi öğrenci numaranı yaz
-            var adminEmail = "b241200023@sakarya.edu.tr";
+            var adminEmail = "ogrencinumarasi@sakarya.edu.tr";
 
             var admin = await userManager.FindByEmailAsync(adminEmail);
             if (admin == null)
             {
-                admin = new ApplicationUser
+                admin = new AppUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,

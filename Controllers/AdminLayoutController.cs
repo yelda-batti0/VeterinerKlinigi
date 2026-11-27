@@ -4,7 +4,6 @@ using VeterinerKlinigi.Context;
 
 namespace VeterinerKlinigi.Controllers
 {
-    [Area("Admin")]
     [Authorize(Roles = Roller.Admin)]
     public class AdminLayoutController : Controller
     {
@@ -13,7 +12,7 @@ namespace VeterinerKlinigi.Controllers
         // (Visual Studio'da AdminLayout/Index.cshtml üzerinde Ctrl+Shift+W yapınca da panel açılır.)
         public IActionResult Index()
         {
-            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            return RedirectToAction("Index", "Dashboard");
         }
     }
 }

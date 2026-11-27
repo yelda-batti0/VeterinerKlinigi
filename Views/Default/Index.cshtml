@@ -1,0 +1,10 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+    Layout = "~/Views/DefaultLayout/Index.cshtml";
+}
+
+@await Component.InvokeAsync("_DefaultHeroSectionComponentPartial")
+@await Component.InvokeAsync("_DefaultAdimlarComponentPartial")
+@await Component.InvokeAsync("_DefaultHizmetComponentPartial")
+@await Component.InvokeAsync("_DefaultKlinikComponentPartial")
+@await Component.InvokeAsync("_DefaultVeterinerComponentPartial")

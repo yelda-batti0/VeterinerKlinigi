@@ -1,0 +1,44 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <title>@ViewData["Title"] - VetKlinik Yönetim Paneli</title>
+    @await Component.InvokeAsync("_AdminLayoutHeadComponentPartial")
+    @await Component.InvokeAsync("_AdminLayoutStyleComponentPartial")
+</head>
+<body>
+    @await Component.InvokeAsync("_AdminLayoutSidebarComponentPartial")
+    @await Component.InvokeAsync("_AdminLayoutMobileSidebarComponentPartial")
+
+    <div class="main">
+        @await Component.InvokeAsync("_AdminLayoutNavbarComponentPartial")
+
+        <!-- Bildirimler -->
+        @if (TempData["Basari"] != null)
+        {
+            <div class="alert alert-success alert-float alert-dismissible fade show">
+                <i class="bi bi-check-circle-fill me-2"></i>@TempData["Basari"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["Hata"] != null)
+        {
+            <div class="alert alert-danger alert-float alert-dismissible fade show">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Hata"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <main class="content">
+            @RenderBody()
+        </main>
+
+        <footer class="admin-footer">© @DateTime.Now.Year VetKlinik · Veteriner Kliniği Randevu ve Hasta Takip Sistemi</footer>
+    </div>
+
+    @await Component.InvokeAsync("_AdminLayoutScriptComponentPartial")
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

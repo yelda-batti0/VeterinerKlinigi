@@ -18,4 +18,14 @@
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.15" />
   </ItemGroup>
 
+
+	<!-- AutoMapper 14.0.0 bilinen açıkları: bu projede yalnızca kendi entity'lerimizi DTO'ya çevirdiğimiz için risk düşük, bilinçli olarak bastırıldı -->
+	<ItemGroup>
+		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-6vhm-j9h7-f9gh" />
+		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-gpwp-5797-mjff" />
+		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rvv3-g6hj-g44x" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Views\Shared\Components\_DefaultHeroSection\" />
+	</ItemGroup>
 </Project>

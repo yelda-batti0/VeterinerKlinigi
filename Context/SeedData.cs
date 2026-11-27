@@ -23,8 +23,8 @@ namespace VeterinerKlinigi.Context
             }
 
             // Admin kullanıcısını oluştur
-            // DİKKAT: Kendi öğrenci numaranı yaz
-            var adminEmail = "ogrencinumarasi@sakarya.edu.tr";
+           
+            var adminEmail = "b241200023@sakarya.edu.tr";
 
             var admin = await userManager.FindByEmailAsync(adminEmail);
             if (admin == null)

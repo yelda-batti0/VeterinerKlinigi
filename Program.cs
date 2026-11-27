@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
@@ -35,23 +36,37 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Hesap/Login";
     options.AccessDeniedPath = "/Hesap/Login";
 
-    // Admin paneline (/Admin/...) giriş yapılmadan ya da yetkisiz girilirse yönetici giriş sayfasına gönder
-    Task Yonlendir(Microsoft.AspNetCore.Authentication.RedirectContext<Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationOptions> context)
+    // İstenen sayfa [Authorize(Roles = "Admin")] ile mi korunuyor?
+    bool AdminSayfasiMi(HttpContext http) =>
+        http.GetEndpoint()?.Metadata
+            .GetOrderedMetadata<AuthorizeAttribute>()
+            .Any(a => a.Roles != null && a.Roles.Split(',').Contains(Roller.Admin)) == true;
+
+    // Admin sayfasıysa yönetici giriş sayfasına, değilse sitenin giriş sayfasına gönder
+    void Yonlendir(HttpContext http, string varsayilanAdres)
     {
-        if (context.Request.Path.StartsWithSegments("/Admin"))
+        if (AdminSayfasiMi(http))
         {
-            var donusAdresi = context.Request.Path + context.Request.QueryString;
-            context.Response.Redirect("/Admin/AdminGiris?returnUrl=" + Uri.EscapeDataString(donusAdresi));
+            var donusAdresi = http.Request.Path + http.Request.QueryString;
+            http.Response.Redirect("/AdminGiris?returnUrl=" + Uri.EscapeDataString(donusAdresi));
         }
         else
         {
-            context.Response.Redirect(context.RedirectUri);
+            http.Response.Redirect(varsayilanAdres);
         }
-        return Task.CompletedTask;
     }
 
-    options.Events.OnRedirectToLogin = Yonlendir;
-    options.Events.OnRedirectToAccessDenied = Yonlendir;
+    options.Events.OnRedirectToLogin = context =>
+    {
+        Yonlendir(context.HttpContext, context.RedirectUri);
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        Yonlendir(context.HttpContext, context.RedirectUri);
+        return Task.CompletedTask;
+    };
 });
 
 builder.Services.AddAutoMapper(typeof(Program));
@@ -71,7 +86,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Default/Error");
     app.UseHsts();
 }
 
@@ -92,13 +107,14 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Admin paneli (Areas/Admin)
+// /admin yazınca panel açılsın
 app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+    name: "admin",
+    pattern: "admin",
+    defaults: new { controller = "Dashboard", action = "Index" });
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Default}/{action=Index}/{id?}");
 
 app.Run();

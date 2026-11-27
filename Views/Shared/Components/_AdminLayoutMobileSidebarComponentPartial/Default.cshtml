@@ -1,0 +1,30 @@
+﻿@{
+    var aktif = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<div class="offcanvas offcanvas-start mobile-sidebar d-lg-none" tabindex="-1" id="mobileSidebar">
+    <div class="offcanvas-header">
+        <div class="sidebar-brand p-0">
+            <div class="brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+            <div class="brand-text"><span>VetKlinik</span><small>Yönetim Paneli</small></div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column pt-0">
+        <div class="sidebar-section">Genel</div>
+        <a class="nav-link @(aktif == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index"><i class="bi bi-grid-1x2-fill"></i>Dashboard</a>
+
+        <div class="sidebar-section">Klinik Yönetimi</div>
+        <a class="nav-link @(aktif == "Klinik" ? "active" : "")" asp-controller="Klinik" asp-action="KlinikList"><i class="bi bi-hospital"></i>Klinikler</a>
+        <a class="nav-link @(aktif == "Hizmet" ? "active" : "")" asp-controller="Hizmet" asp-action="HizmetList"><i class="bi bi-clipboard2-pulse"></i>Hizmetler</a>
+        <a class="nav-link @(aktif == "UzmanlikAlani" ? "active" : "")" asp-controller="UzmanlikAlani" asp-action="UzmanlikAlaniList"><i class="bi bi-award"></i>Uzmanlık Alanları</a>
+
+        <div class="sidebar-section">Personel & Randevu</div>
+        <a class="nav-link @(aktif == "Veteriner" ? "active" : "")" asp-controller="Veteriner" asp-action="VeterinerList"><i class="bi bi-person-badge"></i>Veterinerler</a>
+        <a class="nav-link @(aktif == "Randevu" ? "active" : "")" asp-controller="Randevu" asp-action="RandevuList"><i class="bi bi-calendar2-check"></i>Randevular</a>
+
+        <div class="sidebar-footer">
+            <a class="nav-link" asp-controller="Default" asp-action="Index" target="_blank"><i class="bi bi-box-arrow-up-right"></i>Siteyi Görüntüle</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,40 @@
+﻿@{
+    var aktif = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+
+<aside class="sidebar d-none d-lg-flex">
+    <a asp-controller="Dashboard" asp-action="Index" class="sidebar-brand">
+        <div class="brand-icon"><i class="bi bi-heart-pulse-fill"></i></div>
+        <div class="brand-text"><span>VetKlinik</span><small>Yönetim Paneli</small></div>
+    </a>
+
+    <div class="sidebar-section">Genel</div>
+    <a class="nav-link @(aktif == "Dashboard" ? "active" : "")" asp-controller="Dashboard" asp-action="Index" title="Dashboard">
+        <i class="bi bi-grid-1x2-fill"></i><span class="nav-text">Dashboard</span>
+    </a>
+
+    <div class="sidebar-section">Klinik Yönetimi</div>
+    <a class="nav-link @(aktif == "Klinik" ? "active" : "")" asp-controller="Klinik" asp-action="KlinikList" title="Klinikler">
+        <i class="bi bi-hospital"></i><span class="nav-text">Klinikler</span>
+    </a>
+    <a class="nav-link @(aktif == "Hizmet" ? "active" : "")" asp-controller="Hizmet" asp-action="HizmetList" title="Hizmetler">
+        <i class="bi bi-clipboard2-pulse"></i><span class="nav-text">Hizmetler</span>
+    </a>
+    <a class="nav-link @(aktif == "UzmanlikAlani" ? "active" : "")" asp-controller="UzmanlikAlani" asp-action="UzmanlikAlaniList" title="Uzmanlık Alanları">
+        <i class="bi bi-award"></i><span class="nav-text">Uzmanlık Alanları</span>
+    </a>
+
+    <div class="sidebar-section">Personel & Randevu</div>
+    <a class="nav-link @(aktif == "Veteriner" ? "active" : "")" asp-controller="Veteriner" asp-action="VeterinerList" title="Veterinerler">
+        <i class="bi bi-person-badge"></i><span class="nav-text">Veterinerler</span>
+    </a>
+    <a class="nav-link @(aktif == "Randevu" ? "active" : "")" asp-controller="Randevu" asp-action="RandevuList" title="Randevular">
+        <i class="bi bi-calendar2-check"></i><span class="nav-text">Randevular</span>
+    </a>
+
+    <div class="sidebar-footer">
+        <a class="nav-link" asp-controller="Default" asp-action="Index" target="_blank" title="Siteyi Görüntüle">
+            <i class="bi bi-box-arrow-up-right"></i><span class="nav-text">Siteyi Görüntüle</span>
+        </a>
+    </div>
+</aside>

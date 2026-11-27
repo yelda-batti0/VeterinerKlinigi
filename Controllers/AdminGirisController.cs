@@ -7,7 +7,6 @@ using VeterinerKlinigi.Entities;
 namespace VeterinerKlinigi.Controllers
 {
     // Bu controller'da [Authorize] yok, çünkü giriş yapmamış kişinin de görmesi gerekiyor
-    [Area("Admin")]
     public class AdminGirisController : Controller
     {
         private readonly SignInManager<AppUser> _signInManager;
@@ -23,7 +22,7 @@ namespace VeterinerKlinigi.Controllers
         public IActionResult Index(string? returnUrl = null)
         {
             if (User.IsInRole(Roller.Admin))
-                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                return RedirectToAction("Index", "Dashboard");
 
             ViewBag.ReturnUrl = returnUrl;
             return View(new LoginDto());
@@ -57,7 +56,7 @@ namespace VeterinerKlinigi.Controllers
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return LocalRedirect(returnUrl);
 
-            return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+            return RedirectToAction("Index", "Dashboard");
         }
 
         [HttpPost]
